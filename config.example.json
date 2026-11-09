@@ -1,0 +1,6 @@
+{
+  "username": "student",
+  "password": "change-me",
+  "database_url": "sqlite:///practice2.db",
+  "test_mode": false
+}
