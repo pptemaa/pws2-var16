@@ -26,17 +26,17 @@ def styles():
     pdfmetrics.registerFont(TTFont("Consolas", str(font_dir / "consola.ttf")))
     pdfmetrics.registerFontFamily("Arial", normal="Arial", bold="ArialBold")
     return {
-        "body": ParagraphStyle("body", fontName="Arial", fontSize=9,
-                               leading=13, spaceAfter=6),
+        "body": ParagraphStyle("body", fontName="Arial", fontSize=8.5,
+                               leading=11.5, spaceAfter=4),
         "title": ParagraphStyle("title", fontName="ArialBold", fontSize=17,
-                                leading=22, spaceAfter=14),
+                                leading=20, spaceAfter=10),
         "section": ParagraphStyle("section", fontName="ArialBold",
-                                  fontSize=12, leading=16, spaceBefore=12,
-                                  spaceAfter=8),
+                                  fontSize=11.5, leading=15, spaceBefore=9,
+                                  spaceAfter=6),
         "cell": ParagraphStyle("cell", fontName="Arial", fontSize=6.7,
-                               leading=9, alignment=TA_CENTER),
+                               leading=8, alignment=TA_CENTER),
         "code": ParagraphStyle("code", fontName="Consolas", fontSize=7,
-                               leading=10, leftIndent=6, spaceAfter=8),
+                               leading=9, leftIndent=6, spaceAfter=6),
     }
 
 
@@ -62,7 +62,7 @@ def add_table(rows, story, style, width):
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ("RIGHTPADDING", (0, 0), (-1, -1), 4),
     ]))
-    story.extend((table, Spacer(1, 8)))
+    story.extend((table, Spacer(1, 6)))
 
 
 def build_story(source, sheet, width):
@@ -108,8 +108,8 @@ def build_story(source, sheet, width):
 def main():
     """Создать PDF в родительском каталоге проекта."""
     document = SimpleDocTemplate(str(OUTPUT), pagesize=A4,
-                                 leftMargin=18 * mm, rightMargin=18 * mm,
-                                 topMargin=17 * mm, bottomMargin=17 * mm)
+                                 leftMargin=15 * mm, rightMargin=15 * mm,
+                                 topMargin=14 * mm, bottomMargin=14 * mm)
     source = (ROOT / "README.md").read_text(encoding="utf-8")
     story = build_story(source, styles(), document.width)
     document.build(story)
