@@ -19,9 +19,10 @@ CASES = (
 
 def make_mp3(frequency, duration):
     """Сгенерировать тестовый MP3 с синусоидальным сигналом."""
+    signal = ":".join((f"sine=frequency={frequency}",
+                       f"duration={duration}"))
     command = [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel",
-               "error", "-f", "lavfi", "-i",
-               f"sine=frequency={frequency}:duration={duration}",
+               "error", "-f", "lavfi", "-i", signal,
                "-f", "mp3", "pipe:1"]
     return subprocess.run(command, capture_output=True, check=True).stdout
 

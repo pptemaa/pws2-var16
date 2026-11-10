@@ -3,7 +3,7 @@
 import base64
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
-from xml.etree import ElementTree as ET
+from xml.etree import ElementTree as element_tree
 
 from src.app import PREFIX
 
@@ -14,7 +14,7 @@ class ApiClient:
     def __init__(self, base_url, username, password, transport=None):
         """Сохранить адрес, учётные данные и необязательный transport."""
         self.base_url = base_url.rstrip("/")
-        credentials = f"{username}:{password}".encode("utf-8")
+        credentials = ":".join((username, password)).encode("utf-8")
         token = base64.b64encode(credentials).decode("ascii")
         self.headers = {"Authorization": f"Basic {token}"}
         self.transport = transport
@@ -33,7 +33,7 @@ class ApiClient:
             request = Request(url, method=method, headers=self.headers)
             with urlopen(request) as response:
                 data = response.read()
-        root = ET.fromstring(data)
+        root = element_tree.fromstring(data)
         return [{child.tag: child.text or "" for child in item}
                 for item in root.findall("item")]
 

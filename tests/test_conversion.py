@@ -9,6 +9,7 @@ from pathlib import Path
 
 from src.app import create_app
 from src.client import ApiClient
+from src.convert import SAMPLE_RATE
 from examples.demo import make_mp3
 
 
@@ -17,7 +18,7 @@ def test_real_mp3_to_wav():
     with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
         database = Path(directory) / "real.db"
         app = create_app(overrides={
-            "database_url": f"sqlite:///{database.as_posix()}",
+            "database_url": "sqlite:///" + database.as_posix(),
             "test_mode": False,
         })
         api = ApiClient("http://localhost", "student", "change-me",
@@ -34,6 +35,6 @@ def test_real_mp3_to_wav():
         data = base64.b64decode(feedback[0]["result"])
         with wave.open(BytesIO(data), "rb") as wav:
             assert wav.getnchannels() == 1
-            assert wav.getframerate() == 44100
+            assert wav.getframerate() == SAMPLE_RATE
             assert wav.getnframes() > 0
         app.config["ENGINE"].dispose()

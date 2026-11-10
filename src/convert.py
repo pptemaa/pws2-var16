@@ -7,6 +7,8 @@ from io import BytesIO
 
 import imageio_ffmpeg
 
+SAMPLE_RATE = 44100
+
 
 def convert_mp3(data):
     """Вернуть WAV PCM для переданного потока MP3."""
@@ -15,7 +17,7 @@ def convert_mp3(data):
     command = [
         imageio_ffmpeg.get_ffmpeg_exe(),
         "-hide_banner", "-loglevel", "error", "-i", "pipe:0",
-        "-ac", "1", "-ar", "44100", "-f", "s16le", "pipe:1",
+        "-ac", "1", "-ar", str(SAMPLE_RATE), "-f", "s16le", "pipe:1",
     ]
     result = subprocess.run(command, input=data, capture_output=True,
                             check=False)
@@ -26,7 +28,7 @@ def convert_mp3(data):
     with wave.open(output, "wb") as wav:
         wav.setnchannels(1)
         wav.setsampwidth(2)
-        wav.setframerate(44100)
+        wav.setframerate(SAMPLE_RATE)
         wav.writeframes(result.stdout)
     return output.getvalue()
 

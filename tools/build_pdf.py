@@ -65,43 +65,67 @@ def add_table(rows, story, style, width):
     story.extend((table, Spacer(1, 6)))
 
 
+def line_kind(line, in_code):
+    """Определить вид строки Markdown."""
+    if line.startswith("```"):
+        return "fence"
+    if in_code:
+        return "code"
+    if not line.strip():
+        return "blank"
+    if line.startswith("# ") or line.startswith("## "):
+        return "heading"
+    if line.startswith("|"):
+        return "table"
+    return "paragraph"
+
+
+def iter_blocks(source):
+    """Сгруппировать строки README по видам блоков."""
+    current, lines, in_code = None, [], False
+    for line in source.splitlines() + [""]:
+        kind = line_kind(line, in_code)
+        if kind in ("fence", "blank"):
+            if lines:
+                yield current, lines
+                lines = []
+            if kind == "fence":
+                in_code = not in_code
+            current = None
+            continue
+        if kind != current and lines:
+            yield current, lines
+            lines = []
+        current = kind
+        lines.append(line)
+
+
+def parse_table(lines):
+    """Извлечь ячейки таблицы, пропуская строку разделителей."""
+    rows = []
+    for line in lines:
+        cells = [part.strip() for part in line.strip("|").split("|")]
+        if not all(re.fullmatch(r"[-: ]+", cell) for cell in cells):
+            rows.append(cells)
+    return rows
+
+
 def build_story(source, sheet, width):
     """Преобразовать блоки README в элементы ReportLab."""
-    story, paragraph, code, table = [], [], [], []
-    in_code = False
-
-    def flush():
-        if paragraph:
-            story.append(Paragraph(inline(" ".join(paragraph)), sheet["body"]))
-            paragraph.clear()
-        if table:
-            add_table(table, story, sheet["cell"], width)
-            table.clear()
-
-    for line in source.splitlines() + [""]:
-        if line.startswith("```"):
-            flush()
-            if in_code:
-                story.append(Preformatted("\n".join(code), sheet["code"],
-                                          maxLineLength=88))
-                code.clear()
-            in_code = not in_code
-        elif in_code:
-            code.append(line)
-        elif line.startswith("# ") or line.startswith("## "):
-            flush()
-            key = "title" if line.startswith("# ") else "section"
-            story.append(Paragraph(inline(line.lstrip("# ")), sheet[key]))
-        elif line.startswith("|"):
-            flush() if paragraph else None
-            cells = [part.strip() for part in line.strip("|").split("|")]
-            if not all(re.fullmatch(r"[-: ]+", cell) for cell in cells):
-                table.append(cells)
-        elif not line.strip():
-            flush()
+    story = []
+    for kind, lines in iter_blocks(source):
+        if kind == "heading":
+            for line in lines:
+                key = "title" if line.startswith("# ") else "section"
+                story.append(Paragraph(inline(line.lstrip("# ")),
+                                       sheet[key]))
+        elif kind == "table":
+            add_table(parse_table(lines), story, sheet["cell"], width)
+        elif kind == "code":
+            story.append(Preformatted("\n".join(lines), sheet["code"],
+                                      maxLineLength=88))
         else:
-            flush() if table else None
-            paragraph.append(line)
+            story.append(Paragraph(inline(" ".join(lines)), sheet["body"]))
     return story
 
 

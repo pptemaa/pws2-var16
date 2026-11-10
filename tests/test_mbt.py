@@ -2,6 +2,7 @@
 
 import tempfile
 import time
+from http import HTTPStatus
 from pathlib import Path
 
 from hypothesis import settings
@@ -19,7 +20,7 @@ class ApiMachine(RuleBasedStateMachine):
         super().__init__()
         self.temp = tempfile.TemporaryDirectory(dir=Path.cwd())
         database = Path(self.temp.name) / "test.db"
-        url = f"sqlite:///{database.as_posix()}"
+        url = "sqlite:///" + database.as_posix()
         app = create_app(overrides={"database_url": url, "test_mode": True})
         self.engine = app.config["ENGINE"]
         self.client = ApiClient("http://localhost", "student", "change-me",
@@ -89,7 +90,7 @@ class ApiMachine(RuleBasedStateMachine):
         """Проверить требование 401 для запроса без авторизации."""
         path = f"{PREFIX}/agent/view"
         response = self.client.transport.open(path, method="GET")
-        assert response.status_code == 401
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert response.headers["WWW-Authenticate"].startswith("Basic")
 
     @invariant()

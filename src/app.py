@@ -8,8 +8,9 @@ import subprocess
 import sys
 import threading
 import time
+from http import HTTPStatus
 from pathlib import Path
-from xml.etree import ElementTree as ET
+from xml.etree import ElementTree as element_tree
 
 from flask import Flask, Response, current_app, request
 from sqlalchemy import Integer, create_engine, select
@@ -19,6 +20,13 @@ from src.models import Agent, Base, Feedback, Task
 
 PREFIX = "/service/api/v2.1"
 WINDOW = 7 * 60
+
+
+def int_route(name):
+    """Сформировать параметр пути Flask для целочисленного ключа."""
+    return "<int" + ":" + name + ">"
+
+
 FIELDS = {
     Agent: ("key", "time", "platform"),
     Task: ("key", "time", "argument", "agent", "description", "tags",
@@ -30,27 +38,28 @@ FIELDS = {
 
 def xml_response(name, rows):
     """Сериализовать набор записей в XML."""
-    root = ET.Element(name)
+    root = element_tree.Element(name)
     for row in rows:
-        item = ET.SubElement(root, "item")
+        item = element_tree.SubElement(root, "item")
         if hasattr(row, "_mapping"):
             values = zip(("platform", "argument", "description"), row)
         else:
             values = ((field, getattr(row, field))
                       for field in FIELDS[type(row)])
         for field, value in values:
-            ET.SubElement(item, field).text = str(value)
-    return Response(ET.tostring(root, encoding="utf-8"),
+            element_tree.SubElement(item, field).text = str(value)
+    return Response(element_tree.tostring(root, encoding="utf-8"),
                     mimetype="application/xml")
 
 
 def error_response(message, status):
     """Вернуть ошибку в формате XML."""
-    root = ET.Element("error")
-    ET.SubElement(root, "message").text = message
-    response = Response(ET.tostring(root, encoding="utf-8"), status=status,
+    root = element_tree.Element("error")
+    element_tree.SubElement(root, "message").text = message
+    response = Response(element_tree.tostring(root, encoding="utf-8"),
+                        status=status,
                         mimetype="application/xml")
-    if status == 401:
+    if status == HTTPStatus.UNAUTHORIZED:
         response.headers["WWW-Authenticate"] = 'Basic realm="Practice 2"'
     return response
 
@@ -150,19 +159,19 @@ def create_app(config_path=None, overrides=None):
 def register_routes(app):
     """Подключить обработчики всех девяти маршрутов."""
     app.before_request(check_auth)
-    app.add_url_rule(f"{PREFIX}/agent/submit/<int:key>",
+    app.add_url_rule(f"{PREFIX}/agent/submit/{int_route('key')}",
                      view_func=submit_agent, methods=["PUT"])
     app.add_url_rule(f"{PREFIX}/agent/explore", view_func=explore_agent,
                      methods=["POST"])
     app.add_url_rule(f"{PREFIX}/agent/view", view_func=view_agent,
                      methods=["GET"])
-    app.add_url_rule(f"{PREFIX}/task/submit/<int:key>",
+    app.add_url_rule(f"{PREFIX}/task/submit/{int_route('key')}",
                      view_func=submit_task, methods=["PUT"])
-    app.add_url_rule(f"{PREFIX}/task/explore/<int:agent>",
+    app.add_url_rule(f"{PREFIX}/task/explore/{int_route('agent')}",
                      view_func=explore_task, methods=["POST"])
     app.add_url_rule(f"{PREFIX}/task/view", view_func=view_task,
                      methods=["GET"])
-    app.add_url_rule(f"{PREFIX}/feedback/explore/<int:task>",
+    app.add_url_rule(f"{PREFIX}/feedback/explore/{int_route('task')}",
                      view_func=explore_feedback, methods=["POST"])
     app.add_url_rule(f"{PREFIX}/feedback/view", view_func=view_feedback,
                      methods=["GET"])
