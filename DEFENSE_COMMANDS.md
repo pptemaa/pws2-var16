@@ -30,7 +30,7 @@ Copy-Item config.example.json config.json
 .\.venv\Scripts\python.exe -m pytest -q tests
 .\.venv\Scripts\python.exe -m coverage run --branch --source=src.app -m pytest -q tests/test_mbt.py
 .\.venv\Scripts\python.exe -m coverage report -m
-.\.venv\Scripts\python.exe -m flake8 src tests examples tools --max-line-length=79 --max-complexity=10
+.\.venv\Scripts\python.exe -m flake8 src tests examples --max-line-length=79 --max-complexity=10
 ```
 
 Ожидается два пройденных теста. Последняя команда при отсутствии замечаний

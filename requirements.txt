@@ -5,5 +5,3 @@ hypothesis>=6.100
 coverage>=7.5
 pytest>=8
 flake8>=7
-Markdown>=3.8
-reportlab>=4
