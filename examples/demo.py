@@ -1,12 +1,11 @@
 """Пять демонстраций преобразования MP3 в WAV без бинарных файлов в git."""
 
 import subprocess
+import sys
 import wave
 from io import BytesIO
 
 import imageio_ffmpeg
-
-from src.convert import convert_mp3
 
 CASES = (
     (440, 0.2),
@@ -31,7 +30,9 @@ def main():
     """Напечатать пять параметров входа и характеристики выходного WAV."""
     for number, (frequency, duration) in enumerate(CASES, 1):
         source = make_mp3(frequency, duration)
-        output = convert_mp3(source)
+        command = [sys.executable, "-m", "src.convert"]
+        output = subprocess.run(command, input=source, capture_output=True,
+                                check=True).stdout
         with wave.open(BytesIO(output), "rb") as wav:
             print(number, frequency, duration, len(source), len(output),
                   wav.getnchannels(), wav.getframerate(), wav.getnframes())
