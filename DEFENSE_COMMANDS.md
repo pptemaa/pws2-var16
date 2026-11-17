@@ -1,25 +1,23 @@
 # Команды для защиты практической работы № 2
 
-Команды ниже рассчитаны на **Windows PowerShell**. Сначала откройте терминал
-внутри клонированной папки `pws2-var16`. Каждый блок можно копировать целиком.
+Команды ниже рассчитаны на **Windows PowerShell** на вашем ноутбуке.
+Сначала откройте терминал в папке `pws2-var16`. Каждый блок можно копировать
+целиком.
 
-## 1. Подготовка на компьютере преподавателя
+## 1. Проверка окружения
 
 ```powershell
-python --version
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item config.example.json config.json
+.\.venv\Scripts\python.exe --version
+.\.venv\Scripts\python.exe -c "import flask, sqlalchemy, imageio_ffmpeg, hypothesis; print('Зависимости установлены')"
+if (-not (Test-Path config.json)) { Copy-Item config.example.json config.json }
 ```
 
-Нужен Python 3.10 или новее и доступ к интернету для установки пакетов.
-Эту подготовку достаточно выполнить один раз после клонирования.
+Виртуальное окружение `.venv` уже создано на вашем ноутбуке.
 
 ## 2. Прямой запуск консольной утилиты
 
-Положить скачанный `my_song.mp3` рядом с `README.md` в папку проекта.
-Передать его утилите через стандартный ввод и сохранить стандартный вывод
-как WAV:
+Файл `my_song.mp3` уже лежит рядом с `README.md`. Передать его утилите через
+стандартный ввод и сохранить стандартный вывод как WAV:
 
 ```powershell
 cmd.exe /c ".venv\Scripts\python.exe -m src.convert < my_song.mp3 > my_song.wav"
@@ -28,15 +26,8 @@ cmd.exe /c ".venv\Scripts\python.exe -m src.convert < my_song.mp3 > my_song.wav"
 
 После первой команды в папке появится `my_song.wav`. Вторая команда печатает
 его параметры. Для перенаправления бинарных потоков используется `cmd.exe`:
-PowerShell не поддерживает оператор `<` для ввода файла. Если своего MP3 под
-рукой нет, можно сначала создать тестовый звук:
-
-```powershell
-.\.venv\Scripts\python.exe -c "from pathlib import Path; from examples.demo import make_mp3; Path('my_song.mp3').write_bytes(make_mp3(440, 1.0))"
-```
-
-Файлы MP3 и WAV исключены из Git. На компьютер преподавателя `my_song.mp3`
-нужно перенести отдельно от клонированного репозитория.
+PowerShell не поддерживает оператор `<` для ввода файла. Файлы MP3 и WAV
+исключены из Git и остаются локально на вашем ноутбуке.
 
 ## 3. Пять примеров преобразования MP3 в WAV
 
@@ -89,20 +80,13 @@ git switch main
 ```powershell
 .\.venv\Scripts\python.exe -m examples.defense_api
 Get-Item practice2.db
-sqlite3.exe practice2.db "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
-sqlite3.exe practice2.db "SELECT key, agent, description, processed FROM task ORDER BY key DESC LIMIT 1;"
-sqlite3.exe practice2.db "SELECT task, status, duration FROM feedback ORDER BY key DESC LIMIT 1;"
+.\.venv\Scripts\python.exe -m sqlite3 practice2.db "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+.\.venv\Scripts\python.exe -m sqlite3 practice2.db "SELECT key, agent, description, processed FROM task ORDER BY key DESC LIMIT 1;"
+.\.venv\Scripts\python.exe -m sqlite3 practice2.db "SELECT task, status, duration FROM feedback ORDER BY key DESC LIMIT 1;"
 ```
 
 Ожидаются таблицы `agent`, `task`, `feedback` и строка `feedback` со статусом
-`completed`. Если на компьютере нет `sqlite3.exe`, можно открыть тот же
-файл через CLI модуля Python, подставив вместо `sqlite3.exe` команду
-`.\.venv\Scripts\python.exe -m sqlite3`. Если этот CLI недоступен, используйте
-встроенный модуль Python:
-
-```powershell
-.\.venv\Scripts\python.exe -c "import sqlite3; db = sqlite3.connect('practice2.db'); print(db.execute('SELECT name FROM sqlite_master').fetchall()); print(db.execute('SELECT task, status FROM feedback').fetchall())"
-```
+`completed`. На вашем Python 3.14 доступен CLI SQLite как `python -m sqlite3`.
 
 ## 7. Тесты, ветвевое покрытие и стиль
 
