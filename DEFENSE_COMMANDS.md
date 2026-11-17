@@ -17,19 +17,26 @@ Copy-Item config.example.json config.json
 
 ## 2. Прямой запуск консольной утилиты
 
-Создать небольшой MP3, передать его утилите через стандартный ввод и
-сохранить стандартный вывод как WAV:
+Положить скачанный `my_song.mp3` рядом с `README.md` в папку проекта.
+Передать его утилите через стандартный ввод и сохранить стандартный вывод
+как WAV:
 
 ```powershell
-.\.venv\Scripts\python.exe -c "from pathlib import Path; from examples.demo import make_mp3; Path('sample.mp3').write_bytes(make_mp3(440, 1.0))"
-cmd.exe /c ".venv\Scripts\python.exe -m src.convert < sample.mp3 > sample.wav"
-.\.venv\Scripts\python.exe -c "import wave; w = wave.open('sample.wav', 'rb'); print(w.getparams()); w.close()"
+cmd.exe /c ".venv\Scripts\python.exe -m src.convert < my_song.mp3 > my_song.wav"
+.\.venv\Scripts\python.exe -c "import wave; w = wave.open('my_song.wav', 'rb'); print(w.getparams()); w.close()"
 ```
 
-После второй команды в папке появится `sample.wav`. Третья команда печатает
-его параметры. Если есть свой MP3, замените `sample.mp3` его именем и
-пропустите первую команду. Для перенаправления бинарных потоков используется
-`cmd.exe`: PowerShell не поддерживает оператор `<` для ввода файла.
+После первой команды в папке появится `my_song.wav`. Вторая команда печатает
+его параметры. Для перенаправления бинарных потоков используется `cmd.exe`:
+PowerShell не поддерживает оператор `<` для ввода файла. Если своего MP3 под
+рукой нет, можно сначала создать тестовый звук:
+
+```powershell
+.\.venv\Scripts\python.exe -c "from pathlib import Path; from examples.demo import make_mp3; Path('my_song.mp3').write_bytes(make_mp3(440, 1.0))"
+```
+
+Файлы MP3 и WAV исключены из Git. На компьютер преподавателя `my_song.mp3`
+нужно перенести отдельно от клонированного репозитория.
 
 ## 3. Пять примеров преобразования MP3 в WAV
 
