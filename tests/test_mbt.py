@@ -51,10 +51,11 @@ class ApiMachine(RuleBasedStateMachine):
             return
         key = len(self.tasks) + 1
         agent = next(iter(self.agents))
+        description = f"job-{key}"
         rows = self.client.submit_task(key, agent, b"test mp3",
-                                       description=f"job-{key}")
+                                       description=description)
         assert rows[0]["key"] == str(key)
-        self.tasks[key] = agent
+        self.tasks[key] = (agent, description)
 
     @rule()
     def search_agent(self):
@@ -99,8 +100,14 @@ class ApiMachine(RuleBasedStateMachine):
         agents = self.client.view_agent()
         tasks = self.client.view_task()
         feedback = self.client.view_feedback()
-        assert {int(row["key"]) for row in agents} == set(self.agents)
-        assert {int(row["key"]) for row in tasks} == set(self.tasks)
+        actual_agents = {int(row["key"]): row["platform"]
+                         for row in agents}
+        actual_tasks = {
+            int(row["key"]): (int(row["agent"]), row["description"])
+            for row in tasks
+        }
+        assert actual_agents == self.agents
+        assert actual_tasks == self.tasks
         assert len(feedback) <= len(self.tasks)
 
     def wait_for_feedback(self, task):
