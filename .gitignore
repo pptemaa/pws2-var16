@@ -6,6 +6,9 @@ __pycache__/
 .coverage
 htmlcov/
 *.db
+*.db-journal
+*.db-shm
+*.db-wal
 *.wav
 *.mp3
 .idea/

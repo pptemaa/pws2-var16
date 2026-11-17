@@ -1,6 +1,7 @@
 """Создать задачу через Flask API для показа файла SQLite."""
 
 import json
+import threading
 import time
 from pathlib import Path
 
@@ -31,10 +32,17 @@ def main():
         rows = client.explore_feedback(key)
         if rows:
             result = rows[0]
+            if result["status"] != "completed":
+                raise RuntimeError(result["failure"])
             print("Task key:", key)
             print("Feedback status:", result["status"])
+            print("Report rows:", len(client.explore_report()))
             print("SQLite file:", DATABASE.resolve())
             print("File exists:", DATABASE.is_file())
+            for worker in threading.enumerate():
+                if worker is not threading.current_thread():
+                    worker.join(timeout=5)
+            app.config["ENGINE"].dispose()
             return
         time.sleep(0.1)
     raise TimeoutError("Feedback не появился за 15 секунд")
