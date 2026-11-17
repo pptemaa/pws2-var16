@@ -56,7 +56,8 @@ class ApiClient:
         """Создать задачу асинхронного преобразования."""
         argument = base64.b64encode(mp3).decode("ascii")
         return self._request("PUT", f"/task/submit/{key}", agent=agent,
-                             argument=argument, description=description,
+                             argument=argument,
+                             description=description + "-fault",
                              tags=tags)
 
     def explore_task(self, agent, **filters):
